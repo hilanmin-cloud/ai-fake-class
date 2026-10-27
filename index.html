@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ko" data-size="1">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="only light">
+<title>진짜일까, 가짜일까? AI 가짜 구별 교실</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFFCF4; --surface:#FFFFFF; --ink:#1A2B2E; --muted:#4F6266; --line:#E3DCCB;
+  --teal:#0E7480; --teal-ink:#FFFFFF; --amber:#FFC23D; --amber-ink:#3A2800;
+  --ok:#17704F; --ok-soft:#E3F5EC; --warn:#B3262E; --warn-soft:#FDE8E8;
+  --screen:#EAF4F8; --phone:#3B5C63; --bubble:#FFFFFF; --bubble-me:#FFE79A;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+/* 어르신 선호를 반영해 휴대폰이 어두운 모드여도 항상 밝은 화면으로 표시 */
+html[data-size="1"]{font-size:18px}
+html[data-size="2"]{font-size:21px}
+html[data-size="3"]{font-size:24px}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"Noto Sans KR","Malgun Gothic","맑은 고딕","Apple SD Gothic Neo",sans-serif;
+  line-height:1.6; word-break:keep-all; -webkit-text-size-adjust:100%;
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--teal)}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:4px solid var(--amber);outline-offset:3px}
+
+.bar{
+  position:sticky; top:env(safe-area-inset-top,0px); z-index:5;
+  background:var(--teal); color:var(--teal-ink);
+  display:flex; align-items:center; gap:.5rem; padding:.55rem .9rem;
+}
+.bar .home{background:none;border:0;color:inherit;font-weight:700;font-size:1rem;padding:.35rem .4rem;border-radius:.5rem;display:flex;align-items:center;gap:.35rem}
+.bar .spacer{flex:1}
+.bar .size{background:var(--teal-ink);color:var(--teal);border:0;border-radius:2rem;padding:.35rem .9rem;font-weight:700;font-size:.9rem}
+
+main{max-width:36rem;margin:0 auto;padding:1.4rem 1.1rem 3rem}
+h1,h2,h3{line-height:1.3;margin:0}
+.lead{color:var(--muted);margin:.6rem 0 0}
+
+/* 첫 화면 */
+.hero{padding:.6rem 0 1.4rem}
+.hero h1{font-size:2.4rem;font-weight:900;letter-spacing:-.02em}
+.hero h1 span{display:block}
+.hero .lead{font-size:1.1rem}
+.demo{position:relative;margin:1.6rem 0 1.8rem;background:var(--screen);border-radius:1.4rem;padding:1.1rem 1rem 1.3rem;border:3px solid var(--phone)}
+.demo .who{font-size:.85rem;color:var(--muted);margin-bottom:.4rem}
+.stamp{
+  position:absolute; right:.8rem; bottom:-1.1rem; transform:rotate(-8deg);
+  background:var(--amber); color:var(--amber-ink); font-weight:900; font-size:1.25rem;
+  padding:.3rem 1rem; border-radius:.6rem; border:3px solid var(--amber-ink);
+  box-shadow:0 3px 0 var(--amber-ink);
+}
+@media (prefers-reduced-motion:no-preference){
+  .stamp{animation:stampin .5s .5s both cubic-bezier(.2,1.6,.4,1)}
+  @keyframes stampin{from{opacity:0;transform:rotate(-8deg) scale(2.2)}to{opacity:1;transform:rotate(-8deg) scale(1)}}
+}
+
+.big{
+  display:block; width:100%; border:0; border-radius:1rem; padding:1rem 1.2rem;
+  font-size:1.2rem; font-weight:700; text-align:center;
+  background:var(--teal); color:var(--teal-ink); min-height:3.6rem;
+}
+.big.alt{background:var(--surface);color:var(--ink);border:2px solid var(--line)}
+.row{display:flex;gap:.7rem;flex-wrap:wrap;margin-top:1rem}
+.row > *{flex:1 1 12rem}
+
+/* 메뉴 */
+.menu{display:grid;gap:.9rem;margin-top:1.2rem}
+.topic{
+  display:grid; grid-template-columns:3.6rem 1fr; gap:.9rem; align-items:center;
+  text-align:left; background:var(--surface); border:2px solid var(--line);
+  border-radius:1.1rem; padding:1rem; width:100%;
+}
+.topic .ic{width:3.6rem;height:3.6rem;border-radius:50%;background:var(--teal);color:var(--teal-ink);display:grid;place-items:center}
+.topic .ic svg{width:1.8rem;height:1.8rem}
+.topic h3{font-size:1.25rem}
+.topic p{margin:.15rem 0 0;color:var(--muted);font-size:.95rem}
+.topic .st{display:inline-block;margin-top:.35rem;font-size:.85rem;font-weight:700;padding:.1rem .6rem;border-radius:1rem;background:var(--bg);color:var(--muted)}
+.topic .st.done{background:var(--ok-soft);color:var(--ok)}
+.topic.card .ic{background:var(--amber);color:var(--amber-ink)}
+
+/* 퀴즈 */
+.qhead{display:flex;justify-content:space-between;align-items:baseline;gap:.5rem;margin-bottom:.5rem}
+.qhead .set{font-weight:700;color:var(--teal)}
+.qhead .count{font-weight:700;font-size:1.05rem}
+.prog{height:.55rem;background:var(--line);border-radius:1rem;overflow:hidden;margin-bottom:1.1rem}
+.prog i{display:block;height:100%;background:var(--amber);border-radius:1rem;transition:width .3s}
+.situ{font-size:1.15rem;font-weight:700;margin:0 0 .7rem}
+
+.phone{background:var(--phone);border-radius:1.6rem;padding:.55rem;margin-bottom:1.1rem}
+.phone .top{color:#E7F0EF;display:flex;align-items:center;gap:.5rem;padding:.35rem .6rem .55rem;font-size:.95rem;font-weight:700}
+.phone .top small{font-weight:400;opacity:.75;margin-left:auto;font-size:.8rem}
+.phone .scr{background:var(--screen);border-radius:1.15rem;padding:1rem .85rem;display:flex;flex-direction:column;gap:.55rem}
+.msg{max-width:88%;background:var(--bubble);border-radius:.3rem 1rem 1rem 1rem;padding:.6rem .85rem;font-size:1.05rem}
+.msg .nm{display:block;font-size:.8rem;color:var(--muted);font-weight:700;margin-bottom:.1rem}
+.msg a,.msg .lnk{color:#2B63C9;text-decoration:underline;word-break:break-all}
+
+.att{background:var(--phone);color:#E7F0EF;border-radius:.8rem;padding:.9rem;display:flex;gap:.7rem;align-items:center;font-size:.95rem;max-width:88%}
+.att .play{flex:none;width:2.6rem;height:2.6rem;border-radius:50%;background:#E7F0EF;color:var(--phone);display:grid;place-items:center;font-size:1rem}
+.call{text-align:center;color:#E7F0EF;padding:1rem .5rem .4rem}
+.call .avatar{width:5rem;height:5rem;border-radius:50%;margin:0 auto .6rem;background:#3E5A60;display:grid;place-items:center;font-size:2rem;position:relative;overflow:hidden}
+.call .avatar.glitch::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 6px,rgba(242,181,58,.35) 6px 8px)}
+.call .num{font-size:1.25rem;font-weight:700}
+.call .kind{font-size:.85rem;opacity:.75}
+.voice{background:var(--screen);border-radius:1.15rem;padding:.9rem;margin-top:.8rem}
+.voice .msg{max-width:100%}
+
+.ask{font-size:1.15rem;font-weight:700;margin:.2rem 0 .8rem}
+.answers{display:grid;gap:.7rem}
+.answers.two{grid-template-columns:1fr 1fr}
+.ans{
+  border:3px solid var(--line); background:var(--surface); border-radius:1rem;
+  padding:1rem .9rem; font-size:1.1rem; font-weight:700; text-align:left; min-height:3.8rem;
+  display:flex; align-items:center; gap:.6rem;
+}
+.answers.two .ans{flex-direction:column;justify-content:center;text-align:center;font-size:1.2rem;padding:1.1rem .6rem}
+.ans .sym{flex:none;width:2.2rem;height:2.2rem;border-radius:50%;display:grid;place-items:center;font-size:1.15rem;font-weight:900}
+.ans.ok .sym{background:var(--ok-soft);color:var(--ok)}
+.ans.warn .sym{background:var(--warn-soft);color:var(--warn)}
+.ans.opt .sym{background:var(--bg);color:var(--teal)}
+.ans[disabled]{cursor:default}
+.ans.picked{border-color:var(--ink)}
+.ans.right{border-color:var(--ok);background:var(--ok-soft)}
+.ans.dim{opacity:.55}
+
+.fb{margin-top:1.2rem;border-radius:1.1rem;padding:1.1rem 1.1rem 1.2rem;border:3px solid}
+.fb.good{background:var(--ok-soft);border-color:var(--ok)}
+.fb.try{background:var(--warn-soft);border-color:var(--warn)}
+.fb h3{font-size:1.35rem}
+.fb.good h3{color:var(--ok)}
+.fb.try h3{color:var(--warn)}
+.fb h4{margin:.9rem 0 .2rem;font-size:1rem}
+.fb p{margin:0}
+.fb .tip{background:var(--surface);border-radius:.8rem;padding:.7rem .85rem;margin-top:.3rem;font-weight:500}
+
+.tts{background:var(--surface);border:2px solid var(--line);border-radius:2rem;padding:.4rem .9rem;font-weight:700;font-size:.95rem;display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.8rem}
+.tts svg{width:1.1rem;height:1.1rem}
+
+/* 결과·카드 */
+.result h2{font-size:1.8rem;font-weight:900}
+.score{font-size:1.25rem;margin:.6rem 0 0}
+.keep{background:var(--surface);border-left:.5rem solid var(--amber);border-radius:.8rem;padding:1rem 1.1rem;margin:1.2rem 0 .4rem}
+.keep b{display:block;font-size:.95rem;color:var(--muted)}
+.keep p{margin:.2rem 0 0;font-size:1.25rem;font-weight:700}
+
+.safe{background:var(--teal);color:var(--teal-ink);border-radius:1.4rem;padding:1.5rem 1.3rem;margin:1rem 0}
+.safe h2{font-size:1.6rem;font-weight:900}
+.safe ol{list-style:none;padding:0;margin:1.1rem 0 0;display:grid;gap:.8rem;counter-reset:s}
+.safe li{counter-increment:s;display:grid;grid-template-columns:2.6rem 1fr;gap:.7rem;align-items:center;font-size:1.2rem;font-weight:700}
+.safe li::before{content:counter(s);width:2.6rem;height:2.6rem;border-radius:50%;background:var(--amber);color:var(--amber-ink);display:grid;place-items:center;font-weight:900}
+.safe .help{margin-top:1.3rem;padding-top:1rem;border-top:2px solid color-mix(in srgb,var(--teal-ink) 30%,transparent)}
+.safe .help p{margin:.1rem 0;font-size:1.05rem}
+.how{color:var(--muted);font-size:.95rem}
+
+footer{max-width:36rem;margin:0 auto;padding:0 1.1rem 2rem;color:var(--muted);font-size:.8rem}
+</style>
+</head>
+<body>
+<header class="bar">
+  <button class="home" id="homeBtn" aria-label="처음 화면으로">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>
+    처음으로
+  </button>
+  <span class="spacer"></span>
+  <button class="size" id="sizeBtn" aria-label="글자 크기 바꾸기">글자 크게</button>
+</header>
+<main id="app" tabindex="-1"></main>
+<footer>교육용 예시입니다. 화면에 나오는 이름, 전화번호, 인터넷 주소는 모두 지어낸 것이에요.</footer>
+
+<script>
+(function(){
+  var ICON = {
+    photo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/></svg>',
+    call:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.8 2z"/></svg>',
+    text:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg>',
+    card:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>',
+    speak:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></svg>'
+  };
+
+  var TWO = [
+    {k:'ok', t:'믿어도 돼요', s:'✓'},
+    {k:'warn', t:'의심돼요', s:'!'}
+  ];
+
+  var SETS = {
+    photo:{
+      title:'사진과 영상', lesson:'1차시',
+      desc:'AI가 만든 그럴듯한 사진과 영상을 알아봐요',
+      keep:'사진이나 영상 한 장만 보고 믿지 않아요.',
+      qs:[
+        {
+          situ:'친구들 단체 대화방에 이런 영상이 올라왔어요.',
+          screen:{type:'chat', room:'초등학교 동창 모임', items:[
+            {who:'모르는 사람', text:'유명 배우 ○○○ 씨가 직접 추천하는 투자 비법입니다!'},
+            {att:'영상', label:'유명 배우가 “이 주식은 꼭 사세요”라고 말하는 영상'},
+            {who:'모르는 사람', text:'무료 투자 모임 입장하기 <span class="lnk">http://free-tuja.xx/join</span>'}
+          ]},
+          answer:'warn',
+          why:'요즘 AI는 유명인의 얼굴과 목소리를 그대로 흉내 낸 영상을 만들 수 있어요. 진짜처럼 보여도 가짜일 수 있습니다.',
+          tip:'유명인은 단체 대화방에서 개인에게 투자를 권하지 않아요. 링크는 누르지 마세요.'
+        },
+        {
+          situ:'가족 대화방에 손주가 사진을 올렸어요.',
+          screen:{type:'chat', room:'우리 가족', items:[
+            {who:'손주 지우', text:'할머니! 오늘 운동회에서 달리기 2등 했어요 🏃'},
+            {att:'사진', label:'운동장에서 메달을 목에 건 아이 사진'},
+            {who:'며느리', text:'어머니, 지우가 엄청 열심히 뛰었어요 😊'}
+          ]},
+          answer:'ok',
+          why:'늘 쓰던 가족 대화방에서 아는 사람이 올린 일상 사진이에요. 돈이나 링크, 개인정보를 달라는 말도 없어요.',
+          tip:'의심할지 말지는 “돈, 링크, 개인정보를 달라고 하는가”를 먼저 보면 돼요.'
+        },
+        {
+          situ:'모르는 번호로 사진과 함께 문자가 왔어요.',
+          screen:{type:'chat', room:'010-○○○○-○○○○', items:[
+            {who:'모르는 번호', text:'어머님, 아드님이 교통사고를 냈습니다. 현장 사진 보내드립니다.'},
+            {att:'사진', label:'찌그러진 자동차 옆에 아들처럼 보이는 사람이 서 있는 사진'},
+            {who:'모르는 번호', text:'오늘 안에 합의금을 보내셔야 경찰 신고를 막을 수 있습니다.'}
+          ]},
+          answer:'warn',
+          why:'AI로 가족의 얼굴을 넣은 가짜 사고 사진을 만들 수 있어요. 급하게 돈을 요구하는 것도 사기의 대표적인 신호예요.',
+          tip:'답장하지 말고, 아들에게 원래 알던 번호로 직접 전화해서 확인하세요.'
+        },
+        {
+          situ:'뉴스처럼 보이는 화면이 대화방에 돌고 있어요.',
+          screen:{type:'chat', room:'동네 소식 모임', items:[
+            {att:'사진', label:'뉴스 화면처럼 꾸민 그림: “정부, 65세 이상 모두에게 100만 원 지급”'},
+            {who:'모르는 사람', text:'오늘까지만 신청 가능! 여기서 바로 신청하세요 <span class="lnk">http://gov-money.xx</span>'}
+          ]},
+          answer:'warn',
+          why:'AI로 뉴스 화면처럼 보이는 그림을 쉽게 만들 수 있어요. “오늘까지만”처럼 서두르게 만드는 말도 의심 신호예요.',
+          tip:'나라에서 주는 지원금은 주민센터에 직접 가거나 전화해서 확인하세요.'
+        },
+        {
+          situ:'오랜 친구가 개인 대화방으로 그림을 보냈어요.',
+          screen:{type:'chat', room:'영숙이', items:[
+            {who:'영숙이', text:'나 요즘 복지관에서 AI 배우잖아. 이거 AI한테 부탁해서 만든 그림이야!'},
+            {att:'그림', label:'봄꽃이 핀 시골길 그림'},
+            {who:'영숙이', text:'예쁘지? 너도 다음에 같이 배우자 🌸'}
+          ]},
+          answer:'ok',
+          why:'AI로 만든 그림이라고 해서 모두 나쁜 건 아니에요. 아는 친구가 직접 만들었다고 밝혔고, 아무것도 요구하지 않아요.',
+          tip:'AI는 잘 쓰면 즐거운 도구예요. 문제는 AI를 이용해 속이고 돈을 요구할 때예요.'
+        }
+      ]
+    },
+    call:{
+      title:'전화와 영상통화', lesson:'2차시',
+      desc:'가족 목소리를 흉내 내는 전화에 대처해요',
+      keep:'돈 이야기가 나오면 일단 끊고, 내가 아는 번호로 다시 걸어요.',
+      qs:[
+        {
+          situ:'아들 목소리로 전화가 왔어요.',
+          screen:{type:'call', num:'010-○○○○-○○○○', kind:'음성 전화', face:'👤', lines:[
+            '엄마, 나야. 나 사고 났어…',
+            '급하게 300만 원만 이 계좌로 보내줘. 지금 전화 오래 못 해.'
+          ]},
+          ask:'이럴 땐 어떻게 하시겠어요?',
+          options:[
+            {t:'아들 목소리가 맞으니 바로 돈을 보낸다'},
+            {t:'전화를 끊고, 원래 알던 아들 번호로 다시 건다'},
+            {t:'계좌번호를 다시 한 번 천천히 물어본다'}
+          ],
+          answer:1,
+          why:'AI는 짧은 목소리 녹음만 있어도 가족의 목소리를 흉내 낼 수 있어요. 목소리가 똑같다고 진짜라는 보장이 없어요.',
+          tip:'끊고, 내가 저장해 둔 번호로 다시 걸어서 확인하세요.'
+        },
+        {
+          situ:'딸 얼굴이 보이는 영상통화가 왔어요. 화면이 조금 어색해요.',
+          screen:{type:'call', num:'모르는 번호', kind:'영상 통화', face:'🙂', glitch:true, lines:[
+            '엄마, 내 휴대폰이 고장 나서 친구 폰으로 걸었어.',
+            '편의점에서 상품권 사서 번호만 사진 찍어 보내줘.'
+          ]},
+          ask:'이럴 땐 어떻게 하시겠어요?',
+          options:[
+            {t:'얼굴이 보이니 믿고 상품권을 산다'},
+            {t:'끊고 딸의 원래 번호로 걸거나, 가족에게 먼저 확인한다'}
+          ],
+          answer:1,
+          why:'AI는 얼굴이 움직이는 영상도 만들 수 있어요. 휴대폰 고장, 상품권 요구는 자주 쓰이는 수법이에요.',
+          tip:'얼굴이 보여도, 돈이나 상품권 이야기가 나오면 일단 끊고 확인하세요.'
+        },
+        {
+          situ:'공공기관이라며 전화가 왔어요.',
+          screen:{type:'call', num:'02-○○○-○○○○', kind:'음성 전화', face:'🏛️', lines:[
+            '검찰청 수사관입니다. 고객님 계좌가 범죄에 쓰였습니다.',
+            '지금 보내 드리는 앱을 설치하시고, 안전한 계좌로 돈을 옮기셔야 합니다.'
+          ]},
+          ask:'이럴 땐 어떻게 하시겠어요?',
+          options:[
+            {t:'무서우니 시키는 대로 앱을 설치한다'},
+            {t:'끊고 112나 그 기관의 대표번호로 직접 확인한다'}
+          ],
+          answer:1,
+          why:'검찰, 경찰, 금융감독원은 전화로 앱 설치나 돈을 옮기라고 하지 않아요. 요즘은 AI로 만든 목소리로 이런 전화를 걸기도 해요.',
+          tip:'끊고 112에 물어보세요. 앱 설치를 요구하면 무조건 사기예요.'
+        },
+        {
+          situ:'다니는 병원에서 전화가 왔어요.',
+          screen:{type:'call', num:'튼튼정형외과', kind:'음성 전화', face:'🏥', lines:[
+            '안녕하세요, 튼튼정형외과입니다. 내일 오전 10시 진료 예약 확인 전화 드렸어요.',
+            '시간을 바꾸시려면 병원으로 연락 주세요.'
+          ]},
+          ask:'이럴 땐 어떻게 하시겠어요?',
+          options:[
+            {t:'예약을 확인하고 고맙다고 인사한다'},
+            {t:'모든 전화는 사기이니 바로 신고한다'}
+          ],
+          answer:0,
+          why:'모든 전화가 사기는 아니에요. 다니는 병원이고, 돈이나 앱 설치, 개인정보를 달라고 하지 않아요.',
+          tip:'돈, 앱, 개인정보 이야기가 없으면 너무 걱정하지 않으셔도 돼요.'
+        },
+        {
+          situ:'손자 목소리로 전화가 왔어요.',
+          screen:{type:'call', num:'모르는 번호', kind:'음성 전화', face:'👦', lines:[
+            '할머니, 나야! 급한 일이 생겼어.',
+            '엄마한테는 꼭 비밀로 해 줘. 50만 원만 보내 줄 수 있어?'
+          ]},
+          ask:'이럴 땐 어떻게 하시겠어요?',
+          options:[
+            {t:'손주 부탁이니 비밀을 지키고 돈을 보낸다'},
+            {t:'“우리 집 강아지 이름이 뭐지?”처럼 가족만 아는 질문을 한다'}
+          ],
+          answer:1,
+          why:'“비밀로 해 달라”는 말은 가족에게 확인하지 못하게 막으려는 사기의 대표 신호예요.',
+          tip:'가족끼리만 아는 확인 질문을 미리 정해 두면 큰 도움이 돼요.'
+        }
+      ]
+    },
+    text:{
+      title:'문자와 광고', lesson:'3차시',
+      desc:'가짜 문자와 AI가 만든 광고를 구별해요',
+      keep:'문자 속 링크와 전화번호는 누르지 않고, 공식 번호로 확인해요.',
+      qs:[
+        {
+          situ:'택배 문자가 왔어요.',
+          screen:{type:'sms', from:'010-○○○○-○○○○', items:[
+            {text:'[택배] 주소가 정확하지 않아 배송이 멈췄습니다. 아래에서 주소를 고쳐 주세요. <span class="lnk">http://parcel-check.xx</span>'}
+          ]},
+          answer:'warn',
+          why:'택배 문자를 흉내 낸 가짜 링크예요. 누르면 몰래 나쁜 앱이 깔리거나 개인정보를 빼 갈 수 있어요.',
+          tip:'택배가 궁금하면 문자 속 링크 말고, 택배 회사 앱이나 대표번호로 확인하세요.'
+        },
+        {
+          situ:'모르는 번호로 청첩장 문자가 왔어요.',
+          screen:{type:'sms', from:'010-○○○○-○○○○', items:[
+            {text:'저희 결혼합니다 💐 바쁘시더라도 꼭 와 주세요. 모바일 청첩장 보기 <span class="lnk">http://wedding-card.xx/a1</span>'}
+          ]},
+          answer:'warn',
+          why:'모르는 번호에서 온 청첩장, 부고 문자 링크는 대표적인 사기 수법이에요.',
+          tip:'아는 사람이라면 직접 전화해서 물어보세요. 링크는 누르지 않아요.'
+        },
+        {
+          situ:'카드 결제 문자가 왔어요.',
+          screen:{type:'sms', from:'02-○○○-○○○○', items:[
+            {text:'[해외결제 승인] 980,000원이 결제되었습니다. 본인이 아니면 바로 전화 주세요. 02-○○○-○○○○'}
+          ]},
+          answer:'warn',
+          why:'놀라서 문자 속 번호로 전화하게 만드는 수법이에요. 그 번호는 사기범에게 연결돼요.',
+          tip:'카드 뒷면에 적힌 카드사 번호로 직접 전화해서 확인하세요.'
+        },
+        {
+          situ:'주민센터에서 안내 문자가 왔어요.',
+          screen:{type:'sms', from:'행복동 행정복지센터', items:[
+            {text:'11월 어르신 AI 디지털 교실 수강생을 모집합니다. 신청은 주민센터 2층 창구에서 받습니다. 문의는 주민센터 대표번호로 해 주세요.'}
+          ]},
+          answer:'ok',
+          why:'링크도 없고, 돈이나 개인정보를 달라고 하지 않아요. 직접 방문해서 신청하라는 안내예요.',
+          tip:'그래도 궁금하면 주민센터에 직접 가서 물어보면 가장 확실해요.'
+        },
+        {
+          situ:'동영상을 보다가 이런 광고가 나왔어요.',
+          screen:{type:'ad', title:'AI 의사가 알려주는 무릎 통증 기적의 약', items:[
+            '흰 가운을 입은 의사가 “이 약 하나면 수술 없이 낫습니다”라고 말해요.',
+            '“오늘만 90% 할인” 글자가 깜빡거려요.'
+          ]},
+          answer:'warn',
+          why:'AI로 만든 가짜 의사와 가짜 후기를 쓰는 광고가 많아요. “기적”, “오늘만” 같은 말은 의심 신호예요.',
+          tip:'약은 꼭 다니는 병원 의사나 약사에게 물어보고 드세요.'
+        }
+      ]
+    }
+  };
+  var ORDER = ['photo','call','text'];
+
+  var app = document.getElementById('app');
+  var progress = {};
+  try { progress = JSON.parse(localStorage.getItem('aifake-progress') || '{}') || {}; } catch(e){ progress = {}; }
+  function saveProgress(){ try { localStorage.setItem('aifake-progress', JSON.stringify(progress)); } catch(e){} }
+
+  /* 글자 크기 */
+  var size = 1;
+  try { size = parseInt(localStorage.getItem('aifake-size'),10) || 1; } catch(e){}
+  var sizeBtn = document.getElementById('sizeBtn');
+  function applySize(){
+    document.documentElement.setAttribute('data-size', String(size));
+    sizeBtn.textContent = size === 3 ? '글자 보통' : (size === 2 ? '글자 더 크게' : '글자 크게');
+  }
+  sizeBtn.addEventListener('click', function(){
+    size = size >= 3 ? 1 : size + 1; applySize();
+    try { localStorage.setItem('aifake-size', String(size)); } catch(e){}
+  });
+  applySize();
+
+  /* 읽어 주기 */
+  var canSpeak = ('speechSynthesis' in window) && ('SpeechSynthesisUtterance' in window);
+  function speak(text){
+    if(!canSpeak) return;
+    window.speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(text.replace(/<[^>]+>/g,'').replace(/http\S+/g,'인터넷 주소'));
+    u.lang = 'ko-KR'; u.rate = 0.9;
+    window.speechSynthesis.speak(u);
+  }
+  function stopSpeak(){ if(canSpeak) window.speechSynthesis.cancel(); }
+  function ttsBtn(id){ return canSpeak ? '<button class="tts" id="'+id+'">'+ICON.speak+' 소리로 듣기</button>' : ''; }
+
+  function focusTop(){ window.scrollTo(0,0); app.focus({preventScroll:true}); }
+
+  document.getElementById('homeBtn').addEventListener('click', function(){ stopSpeak(); renderHome(); });
+
+  /* 첫 화면 */
+  function renderHome(){
+    var items = ORDER.map(function(k){
+      var s = SETS[k], p = progress[k];
+      var st = p ? '<span class="st done">'+s.qs.length+'문제 중 '+p+'문제 맞힘</span>' : '<span class="st">아직 안 해 봤어요</span>';
+      return '<button class="topic" data-go="'+k+'"><span class="ic">'+ICON[k]+'</span><span><h3>'+s.lesson+'. '+s.title+'</h3><p>'+s.desc+'</p>'+st+'</span></button>';
+    }).join('');
+    app.innerHTML =
+      '<section class="hero">' +
+        '<h1><span>진짜일까,</span><span>가짜일까?</span></h1>' +
+        '<p class="lead">AI는 사진도, 목소리도, 영상도 진짜처럼 만들어요. 속지 않는 눈을 함께 길러 봐요.</p>' +
+        '<div class="demo" aria-hidden="true">' +
+          '<div class="who">모르는 번호</div>' +
+          '<div class="msg">엄마, 나야. 휴대폰이 고장 나서 친구 폰으로 연락해. 급하게 돈이 좀 필요해…</div>' +
+          '<span class="stamp">의심!</span>' +
+        '</div>' +
+      '</section>' +
+      '<h2 style="font-size:1.35rem">연습할 주제를 고르세요</h2>' +
+      '<div class="menu">' + items +
+        '<button class="topic card" data-go="card"><span class="ic">'+ICON.card+'</span><span><h3>나의 AI 안전 약속</h3><p>배운 내용을 한 장에 담아 가족과 나눠요</p></span></button>' +
+      '</div>';
+    app.querySelectorAll('[data-go]').forEach(function(b){
+      b.addEventListener('click', function(){ var g=b.getAttribute('data-go'); g==='card'?renderCard():startSet(g); });
+    });
+    focusTop();
+  }
+
+  /* 퀴즈 */
+  var cur = null;
+  function startSet(key){ cur = {key:key, i:0, right:0}; renderQ(); }
+
+  function screenHTML(sc){
+    if(sc.type==='chat' || sc.type==='sms'){
+      var head = sc.type==='chat' ? sc.room : sc.from;
+      var sub = sc.type==='chat' ? '대화방' : '문자';
+      var body = sc.items.map(function(it){
+        if(it.att) return '<div class="att"><span class="play">'+(it.att==='영상'?'▶':'▣')+'</span><span><b>'+it.att+'</b><br>'+it.label+'</span></div>';
+        return '<div class="msg">'+(it.who?'<span class="nm">'+it.who+'</span>':'')+it.text+'</div>';
+      }).join('');
+      return '<div class="phone"><div class="top">'+head+'<small>'+sub+'</small></div><div class="scr">'+body+'</div></div>';
+    }
+    if(sc.type==='call'){
+      return '<div class="phone"><div class="call"><div class="avatar'+(sc.glitch?' glitch':'')+'">'+sc.face+'</div><div class="num">'+sc.num+'</div><div class="kind">'+sc.kind+'</div>' +
+        '<div class="voice">'+sc.lines.map(function(l){return '<div class="msg" style="margin-bottom:.45rem;color:var(--ink);text-align:left">“'+l+'”</div>';}).join('')+'</div></div></div>';
+    }
+    if(sc.type==='ad'){
+      return '<div class="phone"><div class="top">동영상 광고<small>광고</small></div><div class="scr">' +
+        '<div class="att" style="max-width:100%"><span class="play">▶</span><span><b>'+sc.title+'</b></span></div>' +
+        sc.items.map(function(l){return '<div class="msg">'+l+'</div>';}).join('') + '</div></div>';
+    }
+    return '';
+  }
+
+  function screenText(q){
+    var sc = q.screen, parts = [q.situ];
+    if(sc.items) sc.items.forEach(function(it){ parts.push(it.att ? it.att+', '+it.label : (typeof it==='string'? it : it.text)); });
+    if(sc.lines) sc.lines.forEach(function(l){ parts.push(l); });
+    if(sc.title) parts.unshift(sc.title);
+    parts.push(q.ask || '믿어도 될까요, 의심해야 할까요?');
+    return parts.join('. ');
+  }
+
+  function renderQ(){
+    stopSpeak();
+    var s = SETS[cur.key], q = s.qs[cur.i], n = s.qs.length;
+    var opts, two = !q.options;
+    if(two){
+      opts = TWO.map(function(o){ return '<button class="ans '+o.k+'" data-v="'+o.k+'"><span class="sym" aria-hidden="true">'+o.s+'</span>'+o.t+'</button>'; }).join('');
+    } else {
+      opts = q.options.map(function(o,idx){ return '<button class="ans opt" data-v="'+idx+'"><span class="sym" aria-hidden="true">'+(idx+1)+'</span><span>'+o.t+'</span></button>'; }).join('');
+    }
+    app.innerHTML =
+      '<div class="qhead"><span class="set">'+s.lesson+'. '+s.title+'</span><span class="count">'+(cur.i+1)+' / '+n+'</span></div>' +
+      '<div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="'+n+'" aria-valuenow="'+(cur.i+1)+'"><i style="width:'+((cur.i+1)/n*100)+'%"></i></div>' +
+      '<p class="situ">'+q.situ+'</p>' + ttsBtn('ttsQ') +
+      screenHTML(q.screen) +
+      '<p class="ask">'+(q.ask || '믿어도 될까요, 의심해야 할까요?')+'</p>' +
+      '<div class="answers'+(two?' two':'')+'">'+opts+'</div>' +
+      '<div id="fb"></div>';
+    var t = document.getElementById('ttsQ');
+    if(t) t.addEventListener('click', function(){ speak(screenText(q)); });
+    app.querySelectorAll('.ans').forEach(function(b){
+      b.addEventListener('click', function(){ answer(b, q, two); });
+    });
+    focusTop();
+  }
+
+  function answer(btn, q, two){
+    stopSpeak();
+    var v = btn.getAttribute('data-v');
+    var correct = two ? (v === q.answer) : (parseInt(v,10) === q.answer);
+    if(correct) cur.right++;
+    app.querySelectorAll('.ans').forEach(function(b){
+      b.disabled = true;
+      var bv = b.getAttribute('data-v');
+      var isRight = two ? (bv === q.answer) : (parseInt(bv,10) === q.answer);
+      if(isRight) b.classList.add('right'); else if(b !== btn) b.classList.add('dim');
+    });
+    btn.classList.add('picked');
+    var rightLabel = two ? (q.answer==='ok' ? '믿어도 되는 경우예요.' : '의심해야 하는 경우예요.') : '정답은 '+(q.answer+1)+'번이에요.';
+    var last = cur.i === SETS[cur.key].qs.length - 1;
+    var fb = document.getElementById('fb');
+    fb.innerHTML =
+      '<div class="fb '+(correct?'good':'try')+'" role="status">' +
+        '<h3>'+(correct?'맞아요, 잘하셨어요!':'괜찮아요, 같이 알아봐요')+'</h3>' +
+        '<p style="margin-top:.3rem;font-weight:700">'+rightLabel+'</p>' +
+        '<h4>왜 그럴까요?</h4><p>'+q.why+'</p>' +
+        '<h4>이렇게 확인하세요</h4><p class="tip">'+q.tip+'</p>' +
+        (canSpeak ? '<div style="margin-top:.9rem">'+ttsBtn('ttsF')+'</div>' : '') +
+      '</div>' +
+      '<div class="row"><button class="big" id="nextBtn">'+(last?'결과 보기':'다음 문제')+'</button></div>';
+    var tf = document.getElementById('ttsF');
+    if(tf) tf.addEventListener('click', function(){ speak(rightLabel+' '+q.why+' '+q.tip); });
+    document.getElementById('nextBtn').addEventListener('click', function(){
+      if(last) renderResult(); else { cur.i++; renderQ(); }
+    });
+    fb.scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'});
+  }
+
+  function renderResult(){
+    stopSpeak();
+    var s = SETS[cur.key], n = s.qs.length;
+    progress[cur.key] = Math.max(progress[cur.key]||0, cur.right); saveProgress();
+    var msg = cur.right === n ? '모두 맞히셨어요. 이제 가족에게 알려 주셔도 되겠어요!'
+            : cur.right >= n-2 ? '아주 잘하셨어요. 헷갈린 문제는 한 번 더 풀어 봐요.'
+            : '처음엔 누구나 헷갈려요. 한 번 더 풀면 훨씬 쉬워져요.';
+    var idx = ORDER.indexOf(cur.key), next = ORDER[idx+1];
+    app.innerHTML =
+      '<section class="result">' +
+        '<h2>'+s.title+' 연습을 마쳤어요</h2>' +
+        '<p class="score">'+n+'문제 중 <b>'+cur.right+'문제</b>를 맞히셨어요.</p>' +
+        '<p class="lead">'+msg+'</p>' +
+        '<div class="keep"><b>오늘 꼭 기억할 한 가지</b><p>'+s.keep+'</p></div>' +
+        ttsBtn('ttsR') +
+        '<div class="row">' +
+          (next ? '<button class="big" id="goNext">다음 주제: '+SETS[next].title+'</button>' : '<button class="big" id="goCard">나의 AI 안전 약속 만들기</button>') +
+          '<button class="big alt" id="again">한 번 더 풀기</button>' +
+        '</div>' +
+      '</section>';
+    var tr = document.getElementById('ttsR');
+    if(tr) tr.addEventListener('click', function(){ speak(n+'문제 중 '+cur.right+'문제를 맞히셨어요. '+msg+' 오늘 꼭 기억할 한 가지. '+s.keep); });
+    var key = cur.key;
+    if(next) document.getElementById('goNext').addEventListener('click', function(){ startSet(next); });
+    else document.getElementById('goCard').addEventListener('click', renderCard);
+    document.getElementById('again').addEventListener('click', function(){ startSet(key); });
+    focusTop();
+  }
+
+  /* 안전 약속 카드 */
+  function renderCard(){
+    stopSpeak();
+    app.innerHTML =
+      '<div class="safe" id="safeCard">' +
+        '<h2>나의 AI 안전 약속</h2>' +
+        '<ol>' +
+          '<li>사진이나 영상만 보고 믿지 않아요</li>' +
+          '<li>돈 이야기가 나오면 일단 끊어요</li>' +
+          '<li>내가 아는 번호로 다시 확인해요</li>' +
+        '</ol>' +
+        '<div class="help">' +
+          '<p><b>도움 받을 곳</b></p>' +
+          '<p>경찰 112</p>' +
+          '<p>금융감독원 1332</p>' +
+          '<p>불법 문자 신고 118</p>' +
+        '</div>' +
+      '</div>' +
+      ttsBtn('ttsC') +
+      '<p class="how">이 화면을 캡처해서 가족 대화방에 보내 보세요. 대부분의 휴대폰은 옆면의 전원 버튼과 소리 줄이는 버튼을 동시에 짧게 누르면 캡처돼요.</p>' +
+      '<div class="row"><button class="big alt" id="backHome">처음 화면으로</button></div>';
+    var tc = document.getElementById('ttsC');
+    if(tc) tc.addEventListener('click', function(){ speak('나의 AI 안전 약속. 하나, 사진이나 영상만 보고 믿지 않아요. 둘, 돈 이야기가 나오면 일단 끊어요. 셋, 내가 아는 번호로 다시 확인해요. 도움 받을 곳은 경찰 112, 금융감독원 1332, 불법 문자 신고 118이에요.'); });
+    document.getElementById('backHome').addEventListener('click', renderHome);
+    focusTop();
+  }
+
+  /* 차시별 바로가기: 주소 끝 #photo, #call, #text, #card */
+  var h = (location.hash || '').replace('#','');
+  if(SETS[h]) startSet(h); else if(h === 'card') renderCard(); else renderHome();
+})();
+</script>
+</body>
+</html>
